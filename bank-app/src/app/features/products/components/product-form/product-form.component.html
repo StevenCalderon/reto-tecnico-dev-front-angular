@@ -1,0 +1,121 @@
+<div class="form-container">
+  <!-- Header -->
+  <div class="bank-header">
+    <div class="logo-container">
+      <i class="material-icons bank-icon">account_balance</i>
+      <h1>BANCO</h1>
+    </div>
+  </div>
+
+  <!-- Formulario -->
+  <div class="content-wrapper">
+    <div class="form-card">
+      <h2>{{ isEditMode ? 'Editar Producto' : 'Formulario de Registro' }}</h2>
+
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          <!-- ID -->
+          <div class="form-group">
+            <label for="id">ID</label>
+            <input 
+              type="text" 
+              id="id" 
+              formControlName="id"
+              [class.error]="productForm.get('id')?.invalid && productForm.get('id')?.touched"
+            >
+            <span class="error-message" *ngIf="getErrorMessage('id')">
+              {{ getErrorMessage('id') }}
+            </span>
+          </div>
+
+          <!-- Nombre -->
+          <div class="form-group">
+            <label for="name">Nombre</label>
+            <input 
+              type="text" 
+              id="name" 
+              formControlName="name"
+              [class.error]="productForm.get('name')?.invalid && productForm.get('name')?.touched"
+            >
+            <span class="error-message" *ngIf="getErrorMessage('name')">
+              {{ getErrorMessage('name') }}
+            </span>
+          </div>
+
+          <!-- Descripción -->
+          <div class="form-group full-width">
+            <label for="description">Descripción</label>
+            <input 
+              type="text" 
+              id="description" 
+              formControlName="description"
+              [class.error]="productForm.get('description')?.invalid && productForm.get('description')?.touched"
+            >
+            <span class="error-message" *ngIf="getErrorMessage('description')">
+              {{ getErrorMessage('description') }}
+            </span>
+          </div>
+
+          <!-- Logo -->
+          <div class="form-group">
+            <label for="logo">Logo</label>
+            <input 
+              type="text" 
+              id="logo" 
+              formControlName="logo"
+              [class.error]="productForm.get('logo')?.invalid && productForm.get('logo')?.touched"
+            >
+            <span class="error-message" *ngIf="getErrorMessage('logo')">
+              {{ getErrorMessage('logo') }}
+            </span>
+          </div>
+
+          <!-- Fecha de Liberación -->
+          <div class="form-group">
+            <label for="date_release">Fecha Liberación</label>
+            <input 
+              type="date" 
+              id="date_release" 
+              formControlName="date_release"
+              [class.error]="productForm.get('date_release')?.invalid && productForm.get('date_release')?.touched"
+            >
+            <span class="error-message" *ngIf="getErrorMessage('date_release')">
+              {{ getErrorMessage('date_release') }}
+            </span>
+          </div>
+
+          <!-- Fecha de Revisión -->
+          <div class="form-group">
+            <label for="date_revision">Fecha Revisión</label>
+            <input 
+              type="date" 
+              id="date_revision" 
+              formControlName="date_revision"
+              readonly
+              [class.error]="productForm.get('date_revision')?.invalid && productForm.get('date_revision')?.touched"
+            >
+          </div>
+        </div>
+
+        <!-- Botones -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn-reset" 
+            (click)="onReset()"
+            [disabled]="submitting"
+          >
+            Reiniciar
+          </button>
+          <button 
+            type="submit" 
+            class="btn-submit" 
+            [disabled]="productForm.invalid || submitting"
+          >
+            {{ isEditMode ? 'Actualizar' : 'Enviar' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

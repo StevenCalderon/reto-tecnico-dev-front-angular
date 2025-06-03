@@ -1,0 +1,15 @@
+<div class="modal-overlay" [class.show]="isOpen" (click)="onCancel()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <h2>{{ title }}</h2>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="onCancel()">
+          Cancelar
+        </button>
+        <button class="btn-confirm" (click)="onConfirm()">
+          Confirmar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

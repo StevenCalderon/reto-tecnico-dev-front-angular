@@ -1,0 +1,104 @@
+<div class="product-list-container">
+  <!-- Header con logo -->
+  <div class="bank-header">
+    <div class="logo-container">
+      <i class="material-icons bank-icon">account_balance</i>
+      <h1>BANCO</h1>
+    </div>
+  </div>
+
+  <div class="content-wrapper">
+    <!-- Search and add button -->
+    <div class="actions-bar">
+      <div class="search-container">
+        <input 
+          type="text" 
+          [ngModel]="searchTerm()" 
+          (ngModelChange)="onSearchChange($event)"
+          placeholder="Search..."
+          class="search-input"
+        >
+      </div>
+      <button routerLink="/products/create" class="add-button">
+        Agregar
+      </button>
+    </div>
+
+    <!-- Products table -->
+    <div class="table-container">
+      <table class="product-table">
+        <thead>
+          <tr>
+            <th>
+              Logo
+            </th>
+            <th>
+              Nombre del producto
+              <i class="material-icons info-icon">info</i>
+            </th>
+            <th>
+              Descripción
+              <i class="material-icons info-icon">info</i>
+            </th>
+            <th>
+              Fecha de liberación
+              <i class="material-icons info-icon">info</i>
+            </th>
+            <th>
+              Fecha de reestructuración
+              <i class="material-icons info-icon">info</i>
+            </th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let product of paginatedProducts">
+            <td class="logo-cell">
+              <div class="product-logo">
+                <img [src]="product.logo" [alt]="product.name" 
+                     onerror="this.src='assets/images/placeholder.png'">
+              </div>
+            </td>
+            <td>{{ product.name }}</td>
+            <td>{{ product.description }}</td>
+            <td>{{ product.date_release | date:'dd/MM/yyyy' }}</td>
+            <td>{{ product.date_revision | date:'dd/MM/yyyy' }}</td>
+            <td>
+              <button class="menu-button" (click)="toggleMenu($event, product.id)">
+                <i class="material-icons">more_vert</i>
+              </button>
+              <div class="menu-dropdown" [class.show]="activeMenu() === product.id">
+                <button (click)="onEdit(product.id)">Editar</button>
+                <button (click)="onDelete(product.id)">Eliminar</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Footer with pagination -->
+    <div class="table-footer">
+      <div class="results-info">
+        {{ filteredProducts().length }} Resultados
+      </div>
+      <div class="items-per-page">
+        <select 
+          [ngModel]="itemsPerPage()" 
+          (ngModelChange)="onItemsPerPageChange($event)"
+        >
+          <option [value]="5">5</option>
+          <option [value]="10">10</option>
+          <option [value]="20">20</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <app-confirmation-modal
+    [isOpen]="showDeleteModal()"
+    [title]="'¿Estás seguro de eliminar el producto ' + getProductName(productToDelete() || '') + '?'"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteModal()"
+  ></app-confirmation-modal>
+</div>
