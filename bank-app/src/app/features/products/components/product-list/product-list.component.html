@@ -55,8 +55,7 @@
           <tr *ngFor="let product of paginatedProducts">
             <td class="logo-cell">
               <div class="product-logo">
-                <img [src]="product.logo" [alt]="product.name" 
-                     onerror="this.src='assets/images/placeholder.png'">
+                <img-logo [src]="product.logo" [name]="product.name"></img-logo>
               </div>
             </td>
             <td>{{ product.name }}</td>

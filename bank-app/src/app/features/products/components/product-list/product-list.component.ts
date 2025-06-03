@@ -5,11 +5,12 @@ import { FormsModule } from '@angular/forms';
 import { RouterModule, Router } from '@angular/router';
 import { DatePipe, CommonModule } from '@angular/common';
 import { ConfirmationModalComponent } from '../../../../shared/components/modals/confirmation-modal/confirmation-modal.component';
+import { ImgLogoComponent } from '../../../../shared/components/img-logo/img-logo.component';
 
 @Component({
   selector: 'app-product-list',
   standalone: true,
-  imports: [FormsModule, RouterModule, DatePipe, CommonModule, ConfirmationModalComponent],
+  imports: [FormsModule, RouterModule, DatePipe, CommonModule, ConfirmationModalComponent, ImgLogoComponent],
   templateUrl: './product-list.component.html',
   styleUrl: './product-list.component.scss'
 })

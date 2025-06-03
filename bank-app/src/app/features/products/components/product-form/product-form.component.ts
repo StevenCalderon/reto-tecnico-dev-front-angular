@@ -1,9 +1,11 @@
-import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService } from '../../../../core/services/api.service';
-import { IProduct } from '../../models/product.model';
+import { IProduct, IProductCreateResponse } from '../../models/product.model';
+import { Observable, tap } from 'rxjs';
+import { urlValidator } from '../../../../shared/utils/validators.util';
 
 @Component({
   selector: 'app-product-form',
@@ -21,6 +23,15 @@ export class ProductFormComponent implements OnInit {
   productForm!: FormGroup;
   isEditMode = false;
   submitting = false;
+
+  fieldLabels: { [key: string]: string } = {
+    id: 'ID',
+    name: 'Nombre',
+    description: 'Descripción',
+    logo: 'Logo',
+    date_release: 'Fecha de liberación',
+    date_revision: 'Fecha de reestructuración'
+  };
 
   ngOnInit() {
     this.initForm();
@@ -49,7 +60,7 @@ export class ProductFormComponent implements OnInit {
         Validators.minLength(10),
         Validators.maxLength(200)
       ]],
-      logo: ['', [Validators.required]],
+      logo: ['', [Validators.required, urlValidator()]],
       date_release: ['', [
         Validators.required,
         this.dateNotBeforeTodayValidator()
@@ -57,7 +68,7 @@ export class ProductFormComponent implements OnInit {
       date_revision: ['', [Validators.required]]
     });
 
-    // Actualizar automáticamente la fecha de revisión
+    
     this.productForm.get('date_release')?.valueChanges.subscribe(date => {
       if (date) {
         const releaseDate = new Date(date);
@@ -94,7 +105,6 @@ export class ProductFormComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading product:', error);
-        // TODO: Mostrar mensaje de error
       }
     });
   }
@@ -110,26 +120,13 @@ export class ProductFormComponent implements OnInit {
       return;
     }
 
-    this.submitting = true;
     const productData = this.productForm.value;
+    if(this.isEditMode) {
+      this.updateProduct(productData);
+    } else {
+      this.createProduct(productData);
+    }
 
-    const request$ = this.isEditMode ?
-      this.apiService.updateProduct(this.route.snapshot.params['id'], productData) :
-      this.apiService.createProduct(productData);
-
-    request$.subscribe({
-      next: () => {
-        this.router.navigate(['/products']);
-      },
-      error: (error) => {
-        console.error('Error saving product:', error);
-        this.submitting = false;
-        // TODO: Mostrar mensaje de error
-      },
-      complete: () => {
-        this.submitting = false;
-      }
-    });
   }
 
   onReset() {
@@ -145,12 +142,46 @@ export class ProductFormComponent implements OnInit {
     if (!control || !control.errors || !control.touched) return '';
 
     const errors = control.errors;
-    
-    if (errors['required']) return 'Este campo es requerido';
-    if (errors['minlength']) return `Mínimo ${errors['minlength'].requiredLength} caracteres`;
-    if (errors['maxlength']) return `Máximo ${errors['maxlength'].requiredLength} caracteres`;
-    if (errors['dateBeforeToday']) return 'La fecha debe ser igual o posterior a hoy';
-    
-    return 'Campo inválido';
+    const label = this.fieldLabels[controlName] || controlName;
+
+    if (errors['required']) return `${label} es requerido`;
+    if (errors['minlength']) return `${label}: mínimo ${errors['minlength'].requiredLength} caracteres`;
+    if (errors['maxlength']) return `${label}: máximo ${errors['maxlength'].requiredLength} caracteres`;
+    if (errors['dateBeforeToday']) return `${label}: la fecha debe ser igual o posterior a hoy`;
+    if (errors['idNotValid']) return 'El ID ya existe, por favor ingrese otro';
+    if (errors['invalidUrl']) return `${label}: la URL no es válida`;
+
+    return `${label} inválido`;
+  }
+
+  private handleProductRequest(request$: Observable<IProductCreateResponse>) {
+    this.submitting = true;
+    request$.subscribe({
+      next: () => {
+        this.router.navigate(['/products']);
+      },
+      error: (error) => {
+        console.error('Error en la operación:', error);
+        this.submitting = false;
+      },
+      complete: () => {
+        this.submitting = false;
+      }
+    });
+  }
+
+  private createProduct(productData: IProduct) {
+    this.apiService.verifyProductId(productData.id).subscribe((isRepeated) => {
+      if(isRepeated) {
+        this.productForm.get('id')?.setErrors({ idNotValid: true });
+        return;
+      } 
+      this.handleProductRequest(this.apiService.createProduct(productData));
+    });
+  } 
+  
+  private updateProduct(productData: IProduct) {
+    const id = this.route.snapshot.params['id'];
+    this.handleProductRequest(this.apiService.updateProduct(id, productData));
   }
 }

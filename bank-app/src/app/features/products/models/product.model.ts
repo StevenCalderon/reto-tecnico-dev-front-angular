@@ -15,6 +15,11 @@ export interface IProduct {
     date_release: Date;
     date_revision: Date;
   }
-  export interface ProductResponse {
-    data: IProduct[];
+  export interface IProductListResponse {
+        data: IProduct[];
+  }
+
+  export interface IProductCreateResponse {
+    message: string;
+    data: IProduct;
   }

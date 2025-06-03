@@ -1,0 +1,12 @@
+<div class="logo-container"
+     [style.--size.px]="size">
+  <img *ngIf="!imageError && src"
+       [src]="src"
+       [alt]="name"
+       class="logo-img"
+       (error)="onError()">
+  <div *ngIf="imageError || !src"
+       class="logo-placeholder">
+    {{ initials }}
+  </div>
+</div>
