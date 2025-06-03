@@ -2,10 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService } from '../../../../core/services/api.service';
-import { IProduct, IProductCreateResponse } from '../../models/product.model';
-import { Observable, tap } from 'rxjs';
-import { urlValidator } from '../../../../shared/utils/validators.util';
+import { ERROR_MESSAGES } from '../../../../shared/constants/error.constants';
+import { FIELD_LABELS } from '../../../../shared/constants/field-labels.const';
+import { ErrorModalService } from '../../../../shared/services/error-modal.service';
+import { formatDateToYYYYMMDD } from '../../../../shared/utils/date.util';
+import { dateNotBeforeTodayValidator, urlValidator } from '../../../../shared/utils/validators.util';
+import { ProductFormService } from './product-form.service';
 
 @Component({
   selector: 'app-product-form',
@@ -18,28 +20,47 @@ export class ProductFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
-  private apiService = inject(ApiService);
-
-  productForm!: FormGroup;
+  productFormService = inject(ProductFormService);
+  errorModalService = inject(ErrorModalService);
+  productForm!:  FormGroup;
   isEditMode = false;
   submitting = false;
-
-  fieldLabels: { [key: string]: string } = {
-    id: 'ID',
-    name: 'Nombre',
-    description: 'Descripción',
-    logo: 'Logo',
-    date_release: 'Fecha de liberación',
-    date_revision: 'Fecha de reestructuración'
-  };
+  productId = '';
 
   ngOnInit() {
     this.initForm();
-    
-    const productId = this.route.snapshot.params['id'];
-    if (productId) {
-      this.isEditMode = true;
-      this.loadProduct(productId);
+    this.initializeEditModeIfNeeded();
+  }
+
+  getErrorMessage(controlName: string): string {
+    const control = this.productForm.get(controlName);
+    if (!control || !control.errors || !control.touched) return '';
+
+    const errors = control.errors;
+    const label = FIELD_LABELS[controlName] || controlName;
+
+    if (errors['required']) return `${label} es requerido`;
+    if (errors['minlength']) return `${label}: mínimo ${errors['minlength'].requiredLength} caracteres`;
+    if (errors['maxlength']) return `${label}: máximo ${errors['maxlength'].requiredLength} caracteres`;
+    if (errors['dateBeforeToday']) return `${label}: la fecha debe ser igual o posterior a hoy`;
+    if (errors['idNotValid']) return 'El ID ya existe, por favor ingrese otro';
+    if (errors['invalidUrl']) return `${label}: la URL no es válida`;
+
+    return `${label} inválido`;
+  }
+
+  onSubmit() {
+    if (this.productForm.invalid) {
+      this.markAsTouchedForm();
+      return;
+    }
+    this.saveProduct();
+  }
+
+  onReset() {
+    this.productForm.reset();
+    if (this.isEditMode) {
+      this.loadProduct(this.productId);
     }
   }
 
@@ -63,41 +84,37 @@ export class ProductFormComponent implements OnInit {
       logo: ['', [Validators.required, urlValidator()]],
       date_release: ['', [
         Validators.required,
-        this.dateNotBeforeTodayValidator()
+        dateNotBeforeTodayValidator()
       ]],
       date_revision: ['', [Validators.required]]
     });
+    this.setDateReleaseAuto();
+  }
 
-    
+  private initializeEditModeIfNeeded() {
+    this.productId = this.route.snapshot.params['id'];
+    if (this.productId) {
+      this.isEditMode = true;
+      this.loadProduct(this.productId);
+    }
+  }
+
+  private setDateReleaseAuto() {
     this.productForm.get('date_release')?.valueChanges.subscribe(date => {
       if (date) {
         const releaseDate = new Date(date);
         const revisionDate = new Date(releaseDate);
         revisionDate.setFullYear(releaseDate.getFullYear() + 1);
         this.productForm.patchValue({
-          date_revision: revisionDate.toISOString().split('T')[0]
+          date_revision: formatDateToYYYYMMDD(revisionDate)
         }, { emitEvent: false });
       }
     });
   }
 
-  private dateNotBeforeTodayValidator() {
-    return (control: any) => {
-      if (!control.value) return null;
-      
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const inputDate = new Date(control.value);
-      inputDate.setHours(0, 0, 0, 0);
-
-      return inputDate >= today ? null : { dateBeforeToday: true };
-    };
-  }
-
   private loadProduct(id: string) {
-    this.apiService.getProducts().subscribe({
-      next: (response) => {
-        const product = response.data.find(p => p.id === id);
+    this.productFormService.getProductById(id).subscribe({
+      next: (product) => {
         if (product) {
           this.productForm.patchValue(product);
           this.productForm.get('id')?.disable();
@@ -109,79 +126,32 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
-  onSubmit() {
-    if (this.productForm.invalid) {
-      Object.keys(this.productForm.controls).forEach(key => {
-        const control = this.productForm.get(key);
-        if (control?.invalid) {
-          control.markAsTouched();
-        }
-      });
-      return;
-    }
-
-    const productData = this.productForm.value;
-    if(this.isEditMode) {
-      this.updateProduct(productData);
-    } else {
-      this.createProduct(productData);
-    }
-
+  private markAsTouchedForm() {
+    Object.keys(this.productForm.controls).forEach(key => {
+      const control = this.productForm.get(key);
+      if (control?.invalid) {
+        control.markAsTouched();
+      }
+    });
   }
 
-  onReset() {
-    this.productForm.reset();
-    if (this.isEditMode) {
-      const productId = this.route.snapshot.params['id'];
-      this.loadProduct(productId);
-    }
-  }
-
-  getErrorMessage(controlName: string): string {
-    const control = this.productForm.get(controlName);
-    if (!control || !control.errors || !control.touched) return '';
-
-    const errors = control.errors;
-    const label = this.fieldLabels[controlName] || controlName;
-
-    if (errors['required']) return `${label} es requerido`;
-    if (errors['minlength']) return `${label}: mínimo ${errors['minlength'].requiredLength} caracteres`;
-    if (errors['maxlength']) return `${label}: máximo ${errors['maxlength'].requiredLength} caracteres`;
-    if (errors['dateBeforeToday']) return `${label}: la fecha debe ser igual o posterior a hoy`;
-    if (errors['idNotValid']) return 'El ID ya existe, por favor ingrese otro';
-    if (errors['invalidUrl']) return `${label}: la URL no es válida`;
-
-    return `${label} inválido`;
-  }
-
-  private handleProductRequest(request$: Observable<IProductCreateResponse>) {
+  private saveProduct() {
     this.submitting = true;
-    request$.subscribe({
+    const productData = this.productForm.value;
+    this.productFormService.saveProduct(productData, this.isEditMode, this.productId).subscribe({
       next: () => {
         this.router.navigate(['/products']);
       },
       error: (error) => {
-        console.error('Error en la operación:', error);
         this.submitting = false;
+        const errorIsDefined: boolean = ERROR_MESSAGES[Number(error.status) as keyof typeof ERROR_MESSAGES] !== undefined;
+        if(!errorIsDefined) {
+          this.errorModalService.showError('Ocurrió un error inesperado.\n Error: ' + error.message);
+        }
       },
       complete: () => {
         this.submitting = false;
       }
     });
-  }
-
-  private createProduct(productData: IProduct) {
-    this.apiService.verifyProductId(productData.id).subscribe((isRepeated) => {
-      if(isRepeated) {
-        this.productForm.get('id')?.setErrors({ idNotValid: true });
-        return;
-      } 
-      this.handleProductRequest(this.apiService.createProduct(productData));
-    });
-  } 
-  
-  private updateProduct(productData: IProduct) {
-    const id = this.route.snapshot.params['id'];
-    this.handleProductRequest(this.apiService.updateProduct(id, productData));
   }
 }

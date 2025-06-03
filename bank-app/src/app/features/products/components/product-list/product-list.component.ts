@@ -99,7 +99,6 @@ export class ProductListComponent implements OnInit {
         error: (error) => {
           console.error('Error deleting product:', error);
           this.closeDeleteModal();
-          // TODO: Mostrar mensaje de error al usuario
         },
         complete: () => {
           this.closeDeleteModal();
@@ -121,7 +120,6 @@ export class ProductListComponent implements OnInit {
       },
       error: (error) => {
         console.error('Error loading products:', error);
-        // TODO: Mostrar mensaje de error al usuario
       }
     });
   }

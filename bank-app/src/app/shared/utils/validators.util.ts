@@ -1,11 +1,27 @@
+import { AbstractControl } from "@angular/forms";
+
 export const urlValidator = () => {
-  return (control: any) => {
-    if (!control.value) return null; // No valida si está vacío (eso lo hace 'required')
+  return (control: AbstractControl) => {
+    if (!control.value) return null;
     try {
       new URL(control.value);
-      return null; // Es una URL válida
+      return null;
     } catch {
       return { invalidUrl: true };
     }
+  };
+}
+
+export const dateNotBeforeTodayValidator = () => {
+  return (control: AbstractControl) => {
+    if (!control.value) return null;
+
+    const [year, month, day] = control.value.split('-').map(Number);
+    const inputUTC = Date.UTC(year, month - 1, day);
+
+    const now = new Date();
+    const todayUTC = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+
+    return inputUTC >= todayUTC ? null : { dateBeforeToday: true };
   };
 }

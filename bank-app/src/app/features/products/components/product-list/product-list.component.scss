@@ -177,14 +177,13 @@
     .menu-dropdown {
       position: absolute;
       right: 0;
-      top: 100%;
       background: white;
       border: 1px solid #E5E7E9;
       border-radius: 4px;
       box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-      display: none;
       z-index: 1000;
       min-width: 120px;
+      display: none;
 
       &.show {
         display: block;

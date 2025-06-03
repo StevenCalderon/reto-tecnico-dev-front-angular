@@ -60,7 +60,7 @@
           <div class="form-group">
             <label for="logo">Logo</label>
             <input 
-              type="text" 
+              type="url" 
               id="logo" 
               formControlName="logo"
               [class.error]="productForm.get('logo')?.invalid && productForm.get('logo')?.touched"
@@ -108,12 +108,12 @@
             Reiniciar
           </button>
           <button 
-            type="submit" 
-            class="btn-submit" 
-            [disabled]="submitting"
-          >
-            {{ isEditMode ? 'Actualizar' : 'Enviar' }}
-          </button>
+          type="submit" 
+          class="btn-submit" 
+          [disabled]="submitting">
+          <span *ngIf="submitting" class="spinner"></span>
+          {{ submitting ? '' : (isEditMode ? 'Actualizar' : 'Enviar') }}
+        </button>
         </div>
       </form>
     </div>
