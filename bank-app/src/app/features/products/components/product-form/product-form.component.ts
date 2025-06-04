@@ -2,10 +2,10 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ERROR_MESSAGES } from '../../../../shared/constants/error.constants';
+import { ERROR_MESSAGES_BY_STATUS, ID_NOT_VALID } from '../../../../shared/constants/error.constants';
 import { FIELD_LABELS } from '../../../../shared/constants/field-labels.const';
 import { ErrorModalService } from '../../../../shared/services/error-modal.service';
-import { formatDateToYYYYMMDD } from '../../../../shared/utils/date.util';
+import { formatDateToYYYYMMDD, parseLocalDate } from '../../../../shared/utils/date.util';
 import { dateNotBeforeTodayValidator, urlValidator } from '../../../../shared/utils/validators.util';
 import { ProductFormService } from './product-form.service';
 
@@ -22,7 +22,7 @@ export class ProductFormComponent implements OnInit {
   private route = inject(ActivatedRoute);
   productFormService = inject(ProductFormService);
   errorModalService = inject(ErrorModalService);
-  productForm!:  FormGroup;
+  productForm!: FormGroup;
   isEditMode = false;
   submitting = false;
   productId = '';
@@ -43,7 +43,7 @@ export class ProductFormComponent implements OnInit {
     if (errors['minlength']) return `${label}: mínimo ${errors['minlength'].requiredLength} caracteres`;
     if (errors['maxlength']) return `${label}: máximo ${errors['maxlength'].requiredLength} caracteres`;
     if (errors['dateBeforeToday']) return `${label}: la fecha debe ser igual o posterior a hoy`;
-    if (errors['idNotValid']) return 'El ID ya existe, por favor ingrese otro';
+    if (errors['idNotValid']) return ID_NOT_VALID;
     if (errors['invalidUrl']) return `${label}: la URL no es válida`;
 
     return `${label} inválido`;
@@ -101,14 +101,14 @@ export class ProductFormComponent implements OnInit {
 
   private setDateReleaseAuto() {
     this.productForm.get('date_release')?.valueChanges.subscribe(date => {
-      if (date) {
-        const releaseDate = new Date(date);
-        const revisionDate = new Date(releaseDate);
-        revisionDate.setFullYear(releaseDate.getFullYear() + 1);
-        this.productForm.patchValue({
-          date_revision: formatDateToYYYYMMDD(revisionDate)
-        }, { emitEvent: false });
-      }
+      if (!date) return;
+      const releaseDate = parseLocalDate(date);
+      const revisionDate = new Date(releaseDate);
+      revisionDate.setFullYear(releaseDate.getFullYear() + 1);
+      this.productForm.patchValue({
+        date_revision: formatDateToYYYYMMDD(revisionDate)
+      }, { emitEvent: false });
+
     });
   }
 
@@ -144,8 +144,12 @@ export class ProductFormComponent implements OnInit {
       },
       error: (error) => {
         this.submitting = false;
-        const errorIsDefined: boolean = ERROR_MESSAGES[Number(error.status) as keyof typeof ERROR_MESSAGES] !== undefined;
-        if(!errorIsDefined) {
+        if (error.message === ID_NOT_VALID) {
+          this.productForm.get('id')?.setErrors({ idNotValid: true });
+          return;
+        }
+        const errorIsDefined: boolean = ERROR_MESSAGES_BY_STATUS[Number(error.status) as keyof typeof ERROR_MESSAGES_BY_STATUS] !== undefined;
+        if (!errorIsDefined) {
           this.errorModalService.showError('Ocurrió un error inesperado.\n Error: ' + error.message);
         }
       },
