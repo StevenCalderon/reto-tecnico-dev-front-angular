@@ -57,7 +57,6 @@ describe('ProductList logic', () => {
   });
 
   it('should return empty array if page is out of range', () => {
-    // Caso de borde: página fuera de rango
     const page3 = paginateProducts(mockProducts, 3, 2);
     expect(page3.length).toBe(0);
   });

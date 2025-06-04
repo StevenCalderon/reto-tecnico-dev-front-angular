@@ -1,27 +1,57 @@
-# BankApp
+# Prueba Técnica Frontend – Angular
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 17.3.16.
-aaa
-## Development server
+Este proyecto fue desarrollado como parte de una prueba técnica para el puesto de Desarollador Angular.  
+Se trata de una app para gestionar productos financieros: permite listar, buscar, agregar, editar y eliminar con validaciones y buen manejo de errores.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+El objetivo fue entregar una solución clara, mantenible y bien estructurada, aplicando buenas prácticas de desarrollo.
 
-## Code scaffolding
+## Tecnologías
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+- Angular 17+
+- TypeScript
+- Jest para pruebas unitarias
 
-## Build
+## Instrucciones
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+1. Clonar el repositorio:
+   ```bash
+   git clone [URL del repo]
+   ```
 
-## Running unit tests
+2. Instala las dependencias del frontend
+   ```bash
+   cd bank-app
+   npm install
+   ```
+3. Instala las dependencias y ejecuta el backend
+   ```bash
+    cd ../node-bank-server
+    npm install
+    npm run start:dev
+   ```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+4. Vuelve a la carpeta del frontend y ejecuta la app
+   ```bash
+   npm start
+   ```
 
-## Running end-to-end tests
+5. Ejecuta los tests unitarios
+   ```bash
+   npm run test
+   ```
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+## Funcionalidades
 
-## Further help
+- Listado con paginación y selección de registros
+- Búsqueda dinámica
+- Crear y editar con formularios reactivos y validaciones
+- Eliminación con confirmación
+- Pruebas unitarias con cobertura >70%
+- Feedback visual de errores
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+## Notas
+
+- La lógica está separada en funciones puras y servicios reutilizables.
+- El proyecto está listo para ser revisado o explicado en entrevista.
+
+Gracias por la oportunidad.
