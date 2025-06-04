@@ -6,6 +6,7 @@ import { RouterModule, Router } from '@angular/router';
 import { DatePipe, CommonModule } from '@angular/common';
 import { ConfirmationModalComponent } from '../../../../shared/components/modals/confirmation-modal/confirmation-modal.component';
 import { ImgLogoComponent } from '../../../../shared/components/img-logo/img-logo.component';
+import { filterProducts, paginateProducts, getProductName as getProductNameUtil } from './production-list.utils';
 
 @Component({
   selector: 'app-product-list',
@@ -34,19 +35,13 @@ export class ProductListComponent implements OnInit {
   }
 
   filterProducts(): void {
-    const term = this.searchTerm().toLowerCase();
-    const filtered = this.products().filter(product => 
-      product.name.toLowerCase().includes(term) ||
-      product.description.toLowerCase().includes(term)
-    );
+    const filtered = filterProducts(this.products(), this.searchTerm());
     this.filteredProducts.set(filtered);
     this.calculatePagination();
   }
 
   get paginatedProducts(): IProduct[] {
-    const start = (this.currentPage() - 1) * this.itemsPerPage();
-    const end = start + this.itemsPerPage();
-    return this.filteredProducts().slice(start, end);
+    return paginateProducts(this.filteredProducts(), this.currentPage(), this.itemsPerPage());
   }
 
   onSearchChange(searchTerm: string): void {
@@ -133,7 +128,6 @@ export class ProductListComponent implements OnInit {
   }
 
   getProductName(id: string): string {
-    const product = this.products().find(p => p.id === id);
-    return product?.name || '';
+    return getProductNameUtil(this.products(), id);
   }
 }

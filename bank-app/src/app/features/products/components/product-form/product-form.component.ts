@@ -26,7 +26,6 @@ export class ProductFormComponent implements OnInit {
   isEditMode = false;
   submitting = false;
   productId = '';
-
   ngOnInit() {
     this.initForm();
     this.initializeEditModeIfNeeded();
