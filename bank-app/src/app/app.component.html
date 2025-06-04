@@ -1,6 +1,5 @@
 <main>
   <router-outlet></router-outlet>
-  <div>showErrorModal: {{ showErrorModal }}</div>
   <app-error-modal
       *ngIf="showErrorModal"
       [message]="errorMessage"
