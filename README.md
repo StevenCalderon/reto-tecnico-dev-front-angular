@@ -15,7 +15,7 @@ El objetivo fue entregar una solución clara, mantenible y bien estructurada, ap
 
 1. Clonar el repositorio:
    ```bash
-   git clone [URL del repo]
+   git clone https://github.com/StevenCalderon/reto-tecnico-dev-front-angular.git
    ```
 
 2. Instala las dependencias del frontend
